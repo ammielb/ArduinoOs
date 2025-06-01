@@ -2,7 +2,7 @@
 #include "EEPROM.h"
 #include "commands.h"
 #include "EEPROMHandeling.h"
-
+#include "procesHandeling.h"
 commandType commands[] = {
     {"store", store},
     {"erase", erase},
@@ -10,6 +10,7 @@ commandType commands[] = {
     {"files", files},
     {"freespace", freespace},
     {"showEEPROM", showEEPROM},
+    {"run", run},
 
 };
 const int nCommands = sizeof(commands) / sizeof(commandType);

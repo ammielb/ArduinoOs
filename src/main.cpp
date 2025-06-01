@@ -2,6 +2,7 @@
 #include <commands.h>
 #include <CLIHandeling.h>
 #include <EEPROMHandeling.h>
+#include <memoryHandeling.h>
 
 static char token[BUFSIZE];
 
@@ -19,9 +20,42 @@ void setup()
     EEPROM.write(i, 0);
   }
   noOfFiles = 0;
-  store("file1 12 bbbbbbb");
-  store("file2 12 aaaaaaaa");
-  store("file3 12 ccccccccc");
+  // store("file1 12 bbbbbbb");
+  // store("file2 12 aaaaaaaa");
+  // store("file3 12 ccccccccc");
+
+  pushChar('a');
+  setVar('x', 0);
+  // getVar('x', 0);
+  // popByte(); // gets type
+  // Serial.println(popChar());
+
+  pushInt(12);
+  setVar('y', 1);
+
+  // getVar('y', 1);
+  // popByte(); // gets type
+  // Serial.println(popInt());
+
+  pushFloat(1.234);
+  setVar('z', 1);
+  // getVar('z', 1);
+  // popByte(); // gets type
+  // Serial.println(popFloat());
+
+  pushString("Hallo");
+  setVar('s', 2);
+
+  pushInt(12);
+  setVar('s', 2);
+  // getVar('s', 2);
+  // popByte(); // gets type
+  // Serial.println(popString());
+  Serial.println(F("before clearing"));
+  showMemory();
+  deleteProcesVars(1);
+  Serial.println(F("after clearing"));
+  showMemory();
 }
 int argCount = 0;
 
