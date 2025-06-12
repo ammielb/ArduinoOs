@@ -11,6 +11,10 @@ commandType commands[] = {
     {"freespace", freespace},
     {"showEEPROM", showEEPROM},
     {"run", run},
+    {"suspend", suspend},
+    {"resume", resume},
+    {"kill", kill},
+    {"list", list},
 
 };
 const int nCommands = sizeof(commands) / sizeof(commandType);
@@ -39,7 +43,8 @@ void store(const char *arg)
     // split the args into there respective variables
     char *nameToken = strtok(input, " ");
     int size = atoi(strtok(NULL, " "));
-    char *data = strtok(NULL, " ");
+    char *data = strtok(NULL, "");
+    Serial.println(data);
     if (noOfFiles == 10)
     {
         Serial.println(F("No more then 10 files can be saved at a time."));

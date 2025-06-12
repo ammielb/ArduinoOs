@@ -6,8 +6,8 @@
 #define STACKSIZE 32
 
 // Basic byte operations
-void pushByte(byte b);
-byte popByte();
+void pushByte(byte b, int procesID);
+byte popByte(int procesID);
 
 // Push functions for data types
 void pushInt(int data);

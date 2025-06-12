@@ -24,7 +24,7 @@ void setVar(byte name, int ID)
     }
 
     // meta data
-    byte type = popByte();
+    byte type = popByte(ID);
     byte length;
 
     if (type == 'I')
@@ -41,7 +41,7 @@ void setVar(byte name, int ID)
     }
     else if (type == 'S')
     {
-        length = popByte();
+        length = popByte(ID);
     }
     else
     {
@@ -71,7 +71,7 @@ void setVar(byte name, int ID)
 
     for (int i = length - 1; i >= 0; i--)
     {
-        memory[avaliableSpaceIndex + i] = popByte();
+        memory[avaliableSpaceIndex + i] = popByte(ID);
     }
 }
 void getVar(byte name, int ID)
@@ -88,13 +88,13 @@ void getVar(byte name, int ID)
 
     for (size_t i = 0; i < length; i++)
     {
-        pushByte(memory[adres + i]);
+        pushByte(memory[adres + i], ID);
     }
     if (type == 'S')
     {
-        pushByte(length);
+        pushByte(length, ID);
     }
-    pushByte(type);
+    pushByte(type, ID);
 }
 int findVariable(byte name, int ID)
 {

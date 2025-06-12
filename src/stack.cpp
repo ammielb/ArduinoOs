@@ -1,122 +1,124 @@
 #include "stack.h"
-byte stack[STACKSIZE]; // <-- Add this line
-byte sp = 0;
+#include "procesHandeling.h"
 
-void pushByte(byte b)
+void pushByte(byte b, int procesID)
 {
-    if (sp >= STACKSIZE)
+    procesEntry proces = procesTable[procesID];
+    if (proces.sp >= STACKSIZE)
     {
         Serial.println("Stack overflow!");
         return;
     }
-    stack[sp++] = b;
+    proces.stack[proces.sp++] = b;
 }
 
-byte popByte()
+byte popByte(int procesID)
 {
-    if (sp == 0)
+    procesEntry proces = procesTable[procesID];
+    if (proces.sp == 0)
     {
         Serial.println("Stack underflow!");
         return 0;
     }
-    return stack[--sp];
+    return proces.stack[--proces.sp];
 }
 
 // push values to stack
-void pushInt(int data)
+void pushInt(int data, int procesID)
 {
     byte MSB = highByte(data);
     byte LSB = lowByte(data);
     // value
-    pushByte(MSB);
-    pushByte(LSB);
+    pushByte(MSB, procesID);
+    pushByte(LSB, procesID);
     //  meta data
     // pushByte(2);
-    pushByte('I');
+    pushByte('I', procesID);
 }
 
-void pushFloat(float data)
+void pushFloat(float data, int procesID)
 {
     byte *b = (byte *)&data;
 
     // value
-    pushByte(b[0]);
-    pushByte(b[1]);
-    pushByte(b[2]);
-    pushByte(b[3]);
+    pushByte(b[0], procesID);
+    pushByte(b[1], procesID);
+    pushByte(b[2], procesID);
+    pushByte(b[3], procesID);
     //  meta data
     // pushByte(4);
-    pushByte('F');
+    pushByte('F', procesID);
 }
 
-void pushChar(char data)
+void pushChar(char data, int procesID)
 {
     // value
-    pushByte(data);
+    pushByte(data, procesID);
     //  meta data
     // pushByte(1);
-    pushByte('C');
+    pushByte('C', procesID);
 }
 
-void pushString(char *data)
+void pushString(char *data, int procesID)
 {
     // value
     for (int i = 0; i < strlen(data); i++)
     {
-        pushByte(data[i]);
+        pushByte(data[i], procesID);
     }
     // terminating zero
-    pushByte('\0');
+    pushByte('\0', procesID);
     //  meta data
-    pushByte(strlen(data) + 1);
-    pushByte('S');
+    pushByte(strlen(data) + 1, procesID);
+    pushByte('S', procesID);
 }
 
 // pop values from stack
 
-int popInt()
+int popInt(int procesID)
 {
     // value
-    byte LSB = popByte();
-    byte MSB = popByte();
+    byte LSB = popByte(procesID);
+    byte MSB = popByte(procesID);
     return word(LSB, MSB);
 }
 
-float popFloat()
+float popFloat(int procesID)
 {
     // value
     byte b[4];
-    b[3] = popByte();
-    b[2] = popByte();
-    b[1] = popByte();
-    b[0] = popByte();
+    b[3] = popByte(procesID);
+    b[2] = popByte(procesID);
+    b[1] = popByte(procesID);
+    b[0] = popByte(procesID);
 
     float value;
     memcpy(&value, b, sizeof(float));
     return value;
 }
 
-char popChar()
+char popChar(int procesID)
 {
-    return popByte();
+    return popByte(procesID);
 }
 
-char *popString()
+char *popString(int procesID)
 {
-    static char result[128]; // static buffer
-    byte length = popByte(); // get length first
+    static char result[64];          // static buffer
+    byte length = popByte(procesID); // get length first
     for (int i = length - 1; i >= 0; i--)
     {
-        result[i] = popByte();
+        result[i] = popByte(procesID);
     }
     return result;
 }
-void showStack()
+void showStack(int procesID)
 {
-    for (size_t i = 0; i < sp; i++)
+    procesEntry proces = procesTable[procesID];
+    for (size_t i = 0; i < proces.sp; i++)
     {
         Serial.print(i);
         Serial.print(": ");
-        Serial.println(stack[i], HEX);
+        Serial.println(proces.stack[i], HEX);
     }
 }
