@@ -167,218 +167,287 @@ void execute(int i)
 {
     int procesCounter = procesTable[i].programCounter;
     byte instruction = EEPROM.read(procesCounter);
-    // switch (instruction)
-    // {
-    // case CHAR:
-    //     Serial.println("Executing CHAR");
-    //     break;
-    // case INT:
-    //     Serial.println("Executing INT");
-    //     break;
-    // case STRING:
-    //     Serial.println("Executing STRING");
-    //     break;
-    // case FLOAT:
-    //     Serial.println("Executing FLOAT");
-    //     break;
-    // case SET:
-    //     Serial.println("Executing SET");
-    //     break;
-    // case GET:
-    //     Serial.println("Executing GET");
-    //     break;
-    // case INCREMENT:
-    //     Serial.println("Executing INCREMENT");
-    //     break;
-    // case DECREMENT:
-    //     Serial.println("Executing DECREMENT");
-    //     break;
-    // case PLUS:
-    //     Serial.println("Executing PLUS");
-    //     break;
-    // case MINUS:
-    //     Serial.println("Executing MINUS");
-    //     break;
-    // case TIMES:
-    //     Serial.println("Executing TIMES");
-    //     break;
-    // case DIVIDEDBY:
-    //     Serial.println("Executing DIVIDEDBY");
-    //     break;
-    // case MODULUS:
-    //     Serial.println("Executing MODULUS");
-    //     break;
-    // case UNARYMINUS:
-    //     Serial.println("Executing UNARYMINUS");
-    //     break;
-    // case EQUALS:
-    //     Serial.println("Executing EQUALS");
-    //     break;
-    // case NOTEQUALS:
-    //     Serial.println("Executing NOTEQUALS");
-    //     break;
-    // case LESSTHAN:
-    //     Serial.println("Executing LESSTHAN");
-    //     break;
-    // case LESSTHANOREQUALS:
-    //     Serial.println("Executing LESSTHANOREQUALS");
-    //     break;
-    // case GREATERTHAN:
-    //     Serial.println("Executing GREATERTHAN");
-    //     break;
-    // case GREATERTHANOREQUALS:
-    //     Serial.println("Executing GREATERTHANOREQUALS");
-    //     break;
-    // case LOGICALAND:
-    //     Serial.println("Executing LOGICALAND");
-    //     break;
-    // case LOGICALOR:
-    //     Serial.println("Executing LOGICALOR");
-    //     break;
-    // case LOGICALXOR:
-    //     Serial.println("Executing LOGICALXOR");
-    //     break;
-    // case LOGICALNOT:
-    //     Serial.println("Executing LOGICALNOT");
-    //     break;
-    // case BITWISEAND:
-    //     Serial.println("Executing BITWISEAND");
-    //     break;
-    // case BITWISEOR:
-    //     Serial.println("Executing BITWISEOR");
-    //     break;
-    // case BITWISEXOR:
-    //     Serial.println("Executing BITWISEXOR");
-    //     break;
-    // case BITWISENOT:
-    //     Serial.println("Executing BITWISENOT");
-    //     break;
-    // case TOCHAR:
-    //     Serial.println("Executing TOCHAR");
-    //     break;
-    // case TOINT:
-    //     Serial.println("Executing TOINT");
-    //     break;
-    // case TOFLOAT:
-    //     Serial.println("Executing TOFLOAT");
-    //     break;
-    // case ROUND:
-    //     Serial.println("Executing ROUND");
-    //     break;
-    // case FLOOR:
-    //     Serial.println("Executing FLOOR");
-    //     break;
-    // case CEIL:
-    //     Serial.println("Executing CEIL");
-    //     break;
-    // case MIN:
-    //     Serial.println("Executing MIN");
-    //     break;
-    // case MAX:
-    //     Serial.println("Executing MAX");
-    //     break;
-    // case ABS:
-    //     Serial.println("Executing ABS");
-    //     break;
-    // case CONSTRAIN:
-    //     Serial.println("Executing CONSTRAIN");
-    //     break;
-    // case MAP:
-    //     Serial.println("Executing MAP");
-    //     break;
-    // case POW:
-    //     Serial.println("Executing POW");
-    //     break;
-    // case SQ:
-    //     Serial.println("Executing SQ");
-    //     break;
-    // case SQRT:
-    //     Serial.println("Executing SQRT");
-    //     break;
-    // case DELAY:
-    //     Serial.println("Executing DELAY");
-    //     break;
-    // case DELAYUNTIL:
-    //     Serial.println("Executing DELAYUNTIL");
-    //     break;
-    // case MILLIS:
-    //     Serial.println("Executing MILLIS");
-    //     break;
-    // case PINMODE:
-    //     Serial.println("Executing PINMODE");
-    //     break;
-    // case ANALOGREAD:
-    //     Serial.println("Executing ANALOGREAD");
-    //     break;
-    // case ANALOGWRITE:
-    //     Serial.println("Executing ANALOGWRITE");
-    //     break;
-    // case DIGITALREAD:
-    //     Serial.println("Executing DIGITALREAD");
-    //     break;
-    // case DIGITALWRITE:
-    //     Serial.println("Executing DIGITALWRITE");
-    //     break;
-    // case PRINT:
-    //     Serial.println("Executing PRINT");
-    //     break;
-    // case PRINTLN:
-    //     Serial.println("Executing PRINTLN");
-    //     break;
-    // case OPEN:
-    //     Serial.println("Executing OPEN");
-    //     break;
-    // case CLOSE:
-    //     Serial.println("Executing CLOSE");
-    //     break;
-    // case WRITE:
-    //     Serial.println("Executing WRITE");
-    //     break;
-    // case READINT:
-    //     Serial.println("Executing READINT");
-    //     break;
-    // case READCHAR:
-    //     Serial.println("Executing READCHAR");
-    //     break;
-    // case READFLOAT:
-    //     Serial.println("Executing READFLOAT");
-    //     break;
-    // case READSTRING:
-    //     Serial.println("Executing READSTRING");
-    //     break;
-    // case IF:
-    //     Serial.println("Executing IF");
-    //     break;
-    // case ELSE:
-    //     Serial.println("Executing ELSE");
-    //     break;
-    // case ENDIF:
-    //     Serial.println("Executing ENDIF");
-    //     break;
-    // case WHILE:
-    //     Serial.println("Executing WHILE");
-    //     break;
-    // case ENDWHILE:
-    //     Serial.println("Executing ENDWHILE");
-    //     break;
-    // case LOOP:
-    //     Serial.println("Executing LOOP");
-    //     break;
-    // case ENDLOOP:
-    //     Serial.println("Executing ENDLOOP");
-    //     break;
-    // case STOP:
-    //     Serial.println("Executing STOP");
-    //     break;
-    // case FORK:
-    //     Serial.println("Executing FORK");
-    //     break;
-    // case WAITUNTILDONE:
-    //     Serial.println("Executing WAITUNTILDONE");
-    //     break;
-    // default:
-    //     Serial.print("Unknown opcode: ");
-    //     Serial.println(instruction);
-    //     break;
-    // }
+    switch (instruction)
+    {
+    case CHAR:
+        Serial.println(F("Executing CHAR"));
+        break;
+
+    case INT:
+        Serial.println(F("Executing INT"));
+        break;
+
+    case STRING:
+        Serial.println(F("Executing STRING"));
+        break;
+
+    case FLOAT:
+        Serial.println(F("Executing FLOAT"));
+        break;
+
+    case SET:
+        Serial.println(F("Executing SET"));
+        break;
+
+    case GET:
+        Serial.println(F("Executing GET"));
+        break;
+
+    case INCREMENT:
+        Serial.println(F("Executing INCREMENT"));
+        break;
+
+    case DECREMENT:
+        Serial.println(F("Executing DECREMENT"));
+        break;
+
+    case PLUS:
+        Serial.println(F("Executing PLUS"));
+        break;
+
+    case MINUS:
+        Serial.println(F("Executing MINUS"));
+        break;
+
+    case TIMES:
+        Serial.println(F("Executing TIMES"));
+        break;
+
+    case DIVIDEDBY:
+        Serial.println(F("Executing DIVIDEDBY"));
+        break;
+
+    case MODULUS:
+        Serial.println(F("Executing MODULUS"));
+        break;
+
+    case UNARYMINUS:
+        Serial.println(F("Executing UNARYMINUS"));
+        break;
+
+    case EQUALS:
+        Serial.println(F("Executing EQUALS"));
+        break;
+
+    case NOTEQUALS:
+        Serial.println(F("Executing NOTEQUALS"));
+        break;
+
+    case LESSTHAN:
+        Serial.println(F("Executing LESSTHAN"));
+        break;
+
+    case LESSTHANOREQUALS:
+        Serial.println(F("Executing LESSTHANOREQUALS"));
+        break;
+
+    case GREATERTHAN:
+        Serial.println(F("Executing GREATERTHAN"));
+        break;
+
+    case GREATERTHANOREQUALS:
+        Serial.println(F("Executing GREATERTHANOREQUALS"));
+        break;
+
+    case LOGICALAND:
+        Serial.println(F("Executing LOGICALAND"));
+        break;
+
+    case LOGICALOR:
+        Serial.println(F("Executing LOGICALOR"));
+        break;
+
+    case LOGICALXOR:
+        Serial.println(F("Executing LOGICALXOR"));
+        break;
+
+    case LOGICALNOT:
+        Serial.println(F("Executing LOGICALNOT"));
+        break;
+
+    case BITWISEAND:
+        Serial.println(F("Executing BITWISEAND"));
+        break;
+
+    case BITWISEOR:
+        Serial.println(F("Executing BITWISEOR"));
+        break;
+
+    case BITWISEXOR:
+        Serial.println(F("Executing BITWISEXOR"));
+        break;
+
+    case BITWISENOT:
+        Serial.println(F("Executing BITWISENOT"));
+        break;
+
+    case TOCHAR:
+        Serial.println(F("Executing TOCHAR"));
+        break;
+
+    case TOINT:
+        Serial.println(F("Executing TOINT"));
+        break;
+
+    case TOFLOAT:
+        Serial.println(F("Executing TOFLOAT"));
+        break;
+
+    case ROUND:
+        Serial.println(F("Executing ROUND"));
+        break;
+
+    case FLOOR:
+        Serial.println(F("Executing FLOOR"));
+        break;
+
+    case CEIL:
+        Serial.println(F("Executing CEIL"));
+        break;
+
+    case MIN:
+        Serial.println(F("Executing MIN"));
+        break;
+
+    case MAX:
+        Serial.println(F("Executing MAX"));
+        break;
+
+    case ABS:
+        Serial.println(F("Executing ABS"));
+        break;
+
+    case CONSTRAIN:
+        Serial.println(F("Executing CONSTRAIN"));
+        break;
+
+    case MAP:
+        Serial.println(F("Executing MAP"));
+        break;
+
+    case POW:
+        Serial.println(F("Executing POW"));
+        break;
+
+    case SQ:
+        Serial.println(F("Executing SQ"));
+        break;
+
+    case SQRT:
+        Serial.println(F("Executing SQRT"));
+        break;
+
+    case DELAY:
+        Serial.println(F("Executing DELAY"));
+        break;
+
+    case DELAYUNTIL:
+        Serial.println(F("Executing DELAYUNTIL"));
+        break;
+
+    case MILLIS:
+        Serial.println(F("Executing MILLIS"));
+        break;
+
+    case PINMODE:
+        Serial.println(F("Executing PINMODE"));
+        break;
+
+    case ANALOGREAD:
+        Serial.println(F("Executing ANALOGREAD"));
+        break;
+
+    case ANALOGWRITE:
+        Serial.println(F("Executing ANALOGWRITE"));
+        break;
+
+    case DIGITALREAD:
+        Serial.println(F("Executing DIGITALREAD"));
+        break;
+
+    case DIGITALWRITE:
+        Serial.println(F("Executing DIGITALWRITE"));
+        break;
+
+    case PRINT:
+        Serial.println(F("Executing PRINT"));
+        break;
+
+    case PRINTLN:
+        Serial.println(F("Executing PRINTLN"));
+        break;
+
+    case OPEN:
+        Serial.println(F("Executing OPEN"));
+        break;
+
+    case CLOSE:
+        Serial.println(F("Executing CLOSE"));
+        break;
+
+    case WRITE:
+        Serial.println(F("Executing WRITE"));
+        break;
+
+    case READINT:
+        Serial.println(F("Executing READINT"));
+        break;
+
+    case READCHAR:
+        Serial.println(F("Executing READCHAR"));
+        break;
+
+    case READFLOAT:
+        Serial.println(F("Executing READFLOAT"));
+        break;
+
+    case READSTRING:
+        Serial.println(F("Executing READSTRING"));
+        break;
+
+    case IF:
+        Serial.println(F("Executing IF"));
+        break;
+
+    case ELSE:
+        Serial.println(F("Executing ELSE"));
+        break;
+
+    case ENDIF:
+        Serial.println(F("Executing ENDIF"));
+        break;
+
+    case WHILE:
+        Serial.println(F("Executing WHILE"));
+        break;
+
+    case ENDWHILE:
+        Serial.println(F("Executing ENDWHILE"));
+        break;
+
+    case LOOP:
+        Serial.println(F("Executing LOOP"));
+        break;
+
+    case ENDLOOP:
+        Serial.println(F("Executing ENDLOOP"));
+        break;
+
+    case STOP:
+        Serial.println(F("Executing STOP"));
+        break;
+
+    case FORK:
+        Serial.println(F("Executing FORK"));
+        break;
+
+    case WAITUNTILDONE:
+        Serial.println(F("Executing WAITUNTILDONE"));
+        break;
+
+    default:
+        Serial.print(F("Unknown opcode: "));
+        Serial.println(instruction);
+        break;
+    }
 }
