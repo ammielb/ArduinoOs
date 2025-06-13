@@ -22,8 +22,9 @@ void eraseFATEntry(int position);
 int findName(char *name);
 int findAvailableSpace(byte size);
 
-void putIntoEEPROM(char *data, int startingPos);
+void putIntoEEPROM(const byte *data, int length, int startingPos);
+
 void eraseFromEEPROM(int startingPos, int length);
-char *retrieveFromEEPROM(fileInfo file);
+byte *retrieveFromEEPROM(fileInfo file);
 
 #endif

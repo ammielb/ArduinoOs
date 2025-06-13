@@ -10,6 +10,7 @@ struct procesEntry
     int procesID;
     byte state;
     int programCounter;
+    int procesLength;
     int beginningAdres;
     byte *stack;
     int sp;
@@ -20,7 +21,7 @@ void suspend(const char *arg);
 void resume(const char *arg);
 void kill(const char *arg);
 void list(const char *arg);
-
+void removeProcesFromList(int procesIndex);
 void changeState(int ID, byte desiredState);
 int findID(int ID);
 

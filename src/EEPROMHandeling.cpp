@@ -33,13 +33,12 @@ void moveFATEntryUp(int originalPosition)
     EEPROM.put(originalPosition - 16, data);
 }
 
-void putIntoEEPROM(char *data, int startingPos)
+void putIntoEEPROM(const byte *data, int length, int startingPos)
 {
-    for (int i = 0; i < strlen(data); i++)
+    for (int i = 0; i < length; i++)
     {
         EEPROM.write(startingPos + i, data[i]);
     }
-    EEPROM.write(startingPos + strlen(data), '\0'); // optional null-terminator
 }
 
 void eraseFromEEPROM(int startingPos, int length)
@@ -48,20 +47,15 @@ void eraseFromEEPROM(int startingPos, int length)
     {
         EEPROM.write(startingPos + i, 0);
     }
-    EEPROM.write(startingPos + length, '\0'); // optional null-terminator
 }
-char *retrieveFromEEPROM(fileInfo file)
+byte *retrieveFromEEPROM(fileInfo file)
 {
-    char *asciiLetter = new char[file.length + 1]; // +1 for null terminator
-
+    byte *data = new byte[file.length];
     for (size_t i = 0; i < file.length; i++)
     {
-        asciiLetter[i] = EEPROM.read(file.position + i);
+        data[i] = EEPROM.read(file.position + i);
     }
-    asciiLetter[file.length] = '\0'; // Null-terminate the string if needed
-
-    return asciiLetter;
-    delete[] asciiLetter;
+    return data;
 }
 int findName(char *name)
 {

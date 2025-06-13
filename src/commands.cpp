@@ -86,13 +86,13 @@ void store(const char *arg)
     writeFATEntry(noOfFiles * 16 + 1, file);
 
     // storing the data in the EEPROM
-    putIntoEEPROM(data, availableSpaceIndex);
+    putIntoEEPROM((byte *)data, size, availableSpaceIndex);
     Serial.println(F(" Succesfully inserted file into FAT"));
 }
 struct TempFile
 {
     fileInfo info;
-    char *data;
+    byte *data;
 };
 
 void erase(const char *arg)
@@ -126,7 +126,7 @@ void erase(const char *arg)
         if (file.length == 0)
             continue;
 
-        char *fileData = retrieveFromEEPROM(file);
+        byte *fileData = retrieveFromEEPROM(file);
         shiftedFiles[fileIdx++] = {file, fileData};
     }
 
@@ -140,7 +140,7 @@ void erase(const char *arg)
         // erase old fileData and insert it into its new position
         eraseFromEEPROM(shiftedFiles[j].info.position, shiftedFiles[j].info.length);
         shiftedFiles[j].info.position -= deletedFile.length;
-        putIntoEEPROM(shiftedFiles[j].data, shiftedFiles[j].info.position);
+        putIntoEEPROM(shiftedFiles[j].data, shiftedFiles[j].info.length, shiftedFiles[j].info.position);
 
         // shift the fat up
         shiftedFiles[j].info.position = deletedFile.position + j * shiftedFiles[j].info.length;
@@ -172,7 +172,7 @@ void retrieve(const char *arg)
     }
 
     fileInfo file = readFATEntry(nameIndex);
-    Serial.println(retrieveFromEEPROM(file));
+    // Serial.println(retrieveFromEEPROM(file));
 }
 void files(const char *arg)
 {
