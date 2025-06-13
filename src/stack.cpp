@@ -112,6 +112,37 @@ char *popString(int procesID)
     }
     return result;
 }
+int popNumber(int procesID)
+{
+    char popType = popByte(procesID);
+    if (popType == 'F')
+    {
+        return (int)popFloat(procesID);
+    }
+    else if (popType == 'I')
+    {
+        return popInt(procesID);
+    }
+}
+float popVal(int procesID)
+{
+    char popType = popByte(procesID);
+    if (popType == 'F')
+    {
+        return (int)popFloat(procesID);
+    }
+    else if (popType == 'I')
+    {
+        return popInt(procesID);
+    }
+    else if (popType == 'C')
+    {
+        return (float)popChar(procesID) - '0';
+    }
+}
+void handleValue(int procesID, )
+{
+}
 void showStack(int procesID)
 {
     procesEntry proces = procesTable[procesID];

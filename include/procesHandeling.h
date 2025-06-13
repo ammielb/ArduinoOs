@@ -10,8 +10,9 @@ struct procesEntry
     int procesID;
     byte state;
     int programCounter;
-    int procesLength;
+    int programLength;
     int beginningAdres;
+    int filePointer;
     byte *stack;
     int sp;
 };

@@ -86,7 +86,23 @@ void store(const char *arg)
     writeFATEntry(noOfFiles * 16 + 1, file);
 
     // storing the data in the EEPROM
-    putIntoEEPROM((byte *)data, size, availableSpaceIndex);
+    byte dataBytes[128]; 
+    int dataCount = 0;
+    char *token = strtok(data, " ");
+//  convert  from char array to byte array
+    while (token && dataCount < size)
+    {
+        dataBytes[dataCount++] = (byte)atoi(token);
+        token = strtok(NULL, " ");
+    }
+    if (dataCount != size)
+    {
+        Serial.println(F("Data count does not match specified size."));
+        return;
+    }
+
+    // byte value = (byte)atoi(data);
+    putIntoEEPROM(dataBytes, size, availableSpaceIndex);
     Serial.println(F(" Succesfully inserted file into FAT"));
 }
 struct TempFile
