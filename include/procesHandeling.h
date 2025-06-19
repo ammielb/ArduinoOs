@@ -13,7 +13,7 @@ struct procesEntry
     int programLength;
     int beginningAdres;
     int filePointer;
-    byte *stack;
+    byte stack[32];
     int sp;
 };
 extern procesEntry procesTable[MAX_PROCES];
@@ -25,7 +25,7 @@ void list(const char *arg);
 void removeProcesFromList(int procesIndex);
 void changeState(int ID, byte desiredState);
 int findID(int ID);
-
+void handleDataTypes(char type, int procesIndex);
 void runProcesses();
 void execute(int i);
 #endif

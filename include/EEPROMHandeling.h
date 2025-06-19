@@ -20,7 +20,7 @@ void moveFATEntryUp(int originalPosition);
 void eraseFATEntry(int position);
 
 int findName(char *name);
-int findAvailableSpace(byte size);
+int findAvailableSpaceFAT(byte size);
 
 void putIntoEEPROM(const byte *data, int length, int startingPos);
 

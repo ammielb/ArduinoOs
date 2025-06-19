@@ -2,8 +2,8 @@
 #define MAX_VARS 16
 #define MEM_SIZE 128
 
-byte memory[MEM_SIZE];             // <-- Add this line
-memoryEntry memoryTable[MAX_VARS]; // <-- Add this line
+byte memory[MEM_SIZE];
+memoryEntry memoryTable[MAX_VARS];
 byte noOfVars = 0;
 void setVar(byte name, int ID)
 {
@@ -13,6 +13,7 @@ void setVar(byte name, int ID)
         return;
     }
     int variableIndex = findVariable(name, ID);
+    // Serial.println(variableIndex);
     if (variableIndex != -1)
     {
         //  erase variable out of memory table
@@ -45,7 +46,8 @@ void setVar(byte name, int ID)
     }
     else
     {
-        Serial.println("Fout: onbekend type");
+        Serial.print("Fout: onbekend type");
+        Serial.println(type);
         return;
     }
 
@@ -68,10 +70,10 @@ void setVar(byte name, int ID)
 
     memoryTable[noOfVars] = newVar;
     noOfVars++;
-
-    for (int i = length - 1; i >= 0; i--)
+    for (int i = length; i > 0; i--)
     {
-        memory[avaliableSpaceIndex + i] = popByte(ID);
+        byte bit = popByte(ID);
+        memory[avaliableSpaceIndex - 1 + i] = bit;
     }
 }
 void getVar(byte name, int ID)
@@ -86,10 +88,11 @@ void getVar(byte name, int ID)
     byte length = memoryTable[variableIndex].length;
     int adres = memoryTable[variableIndex].adres;
 
-    for (size_t i = 0; i < length; i++)
+    for (int i = length; i > 0; i--)
     {
-        pushByte(memory[adres + i], ID);
+        pushByte(memory[adres - 1 + i], ID);
     }
+
     if (type == 'S')
     {
         pushByte(length, ID);
@@ -119,7 +122,7 @@ int findAvailableSpace(int newVarLength)
         return memoryTable[0].adres + memoryTable[0].length;
     }
 
-    for (size_t i = 0; i < noOfVars - 1; i++)
+    for (size_t i = 0; i < noOfVars; i++)
     {
         int difference = memoryTable[i + 1].adres - (memoryTable[i].adres + memoryTable[i].length);
         if (difference >= newVarLength)
@@ -127,12 +130,11 @@ int findAvailableSpace(int newVarLength)
             return memoryTable[i].adres + memoryTable[i].length;
         }
     }
-    int spaceLeft = 256 - memoryTable[noOfVars - 1].adres + memoryTable[noOfVars - 1].length;
-
-    // last variable comparisson
-    if (spaceLeft >= newVarLength)
+    // Check space after last variable
+    int lastEnd = memoryTable[noOfVars - 1].adres + memoryTable[noOfVars - 1].length;
+    if (MEM_SIZE - lastEnd >= newVarLength)
     {
-        return spaceLeft;
+        return lastEnd;
     }
 
     //  no space left

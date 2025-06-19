@@ -15,7 +15,7 @@ commandType commands[] = {
     {"resume", resume},
     {"kill", kill},
     {"list", list},
-
+    {"clearEEPROM", clearEEPROM},
 };
 const int nCommands = sizeof(commands) / sizeof(commandType);
 void commandHandler(const char **userInput)
@@ -39,71 +39,86 @@ void commandHandler(const char **userInput)
 // char[12} name, byte size, data
 void store(const char *arg)
 {
-    char *input = arg;
-    // split the args into there respective variables
+    char input[64];
+    strncpy(input, arg, sizeof(input));
+    input[sizeof(input) - 1] = '\0';
+
     char *nameToken = strtok(input, " ");
-    int size = atoi(strtok(NULL, " "));
-    char *data = strtok(NULL, "");
-    Serial.println(data);
+    char *sizeToken = strtok(NULL, " ");
+
+    if (!nameToken || !sizeToken)
+    {
+        Serial.println(F("Not enough arguments for store."));
+        return;
+    }
+    int size = atoi(sizeToken);
+
     if (noOfFiles == 10)
     {
         Serial.println(F("No more then 10 files can be saved at a time."));
         return;
     }
-    // check if enough arguments have been passed through
-    if (data == NULL)
-    {
-        Serial.println(F("Not enough arguments has been given. Please try again."));
-        return;
-    }
-
     if (findName(nameToken) != -1)
     {
         Serial.println(F("File name already exists. Please enter a different file name."));
         return;
     }
-
-    int availableSpaceIndex = findAvailableSpace(size);
+    int availableSpaceIndex = findAvailableSpaceFAT(size);
     if (availableSpaceIndex == -1)
     {
         Serial.println(F("There is no available space left for this file size."));
         return;
     }
 
-    //  put data of file into EEPROM
-    // Create a fixed-size char array for the name and copy safely
+    // Prepare file info
     char name[12];
     strncpy(name, nameToken, sizeof(name));
-    name[sizeof(name) - 1] = '\0'; // Ensure null-termination
+    name[sizeof(name) - 1] = '\0';
 
-    // Now create your fileInfo struct with the fixed name array
-    fileInfo file = {0}; // zero-init to be safe
+    fileInfo file = {0};
     strncpy(file.name, name, sizeof(file.name));
+    file.name[sizeof(file.name) - 1] = '\0';
     file.position = availableSpaceIndex;
     file.length = size;
 
-    // storing into the FAT.
     writeFATEntry(noOfFiles * 16 + 1, file);
 
-    // storing the data in the EEPROM
-    byte dataBytes[128]; 
+    // Now read the raw bytes from Serial
+    byte dataBytes[128];
     int dataCount = 0;
-    char *token = strtok(data, " ");
-//  convert  from char array to byte array
-    while (token && dataCount < size)
-    {
-        dataBytes[dataCount++] = (byte)atoi(token);
-        token = strtok(NULL, " ");
+    unsigned long start = millis();
+    while (dataCount < size && (millis() - start) < 2000)
+    { // 2s timeout
+        if (Serial.available())
+        {
+            dataBytes[dataCount++] = Serial.read();
+        }
     }
-    if (dataCount != size)
+    Serial.println(size);
+    Serial.println(dataCount);
+
+    if (dataCount == 0)
     {
-        Serial.println(F("Data count does not match specified size."));
+        char *data = strtok(NULL, "");
+        if (data == NULL)
+        {
+
+            return;
+        }
+        size_t dataLen = strlen(data);
+        if (dataLen > (size_t)size)
+            dataLen = size;
+        memcpy(dataBytes, data, dataLen);
+        dataCount = dataLen;
+    }
+    else if (dataCount != size)
+    {
+        Serial.println(F("Did not receive all data bytes."));
         return;
     }
 
-    // byte value = (byte)atoi(data);
     putIntoEEPROM(dataBytes, size, availableSpaceIndex);
-    Serial.println(F(" Succesfully inserted file into FAT"));
+    Serial.println(F("Succesfully inserted file into FAT"));
 }
 struct TempFile
 {
@@ -188,7 +203,21 @@ void retrieve(const char *arg)
     }
 
     fileInfo file = readFATEntry(nameIndex);
-    // Serial.println(retrieveFromEEPROM(file));
+    byte *fileData = retrieveFromEEPROM(file);
+    for (size_t i = 0; i < file.length; i++)
+    {
+        byte b = fileData[i];
+        if (b >= 32 && b <= 126)
+        {
+            Serial.print((char)b); // printable ASCII
+        }
+        else
+        {
+            Serial.print(b);
+        }
+    }
+
+    Serial.println(" ");
 }
 void files(const char *arg)
 {
@@ -253,4 +282,14 @@ void unknownCommand(const char *arg)
     {
         Serial.println(commands[i].name);
     }
+}
+
+void clearEEPROM(const char *arg)
+{
+    for (int i = 0; i < EEPROM.length(); i++)
+    {
+        EEPROM.write(i, 0);
+    }
+    noOfFiles = 0;
+    Serial.println("EEPROM cleared");
 }

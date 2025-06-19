@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-#define STACKSIZE 32
+#define STACKSIZE 64
 
 // Basic byte operations
 void pushByte(byte b, int procesID);
@@ -23,5 +23,5 @@ char *popString(int procesID);
 int popNumber(int procesID);
 float popVal(int procesID);
 
-void showStack();
+void showStack(int procesID);
 #endif

@@ -1,6 +1,7 @@
 #include "procesHandeling.h"
 #include "memoryHandeling.h"
 #include "EEPROMHandeling.h"
+#include "commands.h"
 #include "instruction_set.h"
 #include <math.h>
 int noOfProces = 0;
@@ -21,7 +22,6 @@ void run(const char *arg)
     }
 
     fileInfo file = readFATEntry(fileIndex);
-    byte newStack[STACKSIZE];
     strncpy(procesTable[noOfProces].name, arg, sizeof(procesTable[noOfProces].name) - 1);
     procesTable[noOfProces].name[sizeof(procesTable[noOfProces].name) - 1] = '\0';
     procesTable[noOfProces].procesID = procesID++;
@@ -29,7 +29,9 @@ void run(const char *arg)
     procesTable[noOfProces].programCounter = file.position;
     procesTable[noOfProces].programLength = file.length;
     procesTable[noOfProces].beginningAdres = file.position;
-    procesTable[noOfProces].stack = newStack;
+
+    // Initialize stack to zero for safety
+    memset(procesTable[noOfProces].stack, 0, STACKSIZE);
     procesTable[noOfProces].sp = 0;
     noOfProces++;
 
@@ -156,6 +158,81 @@ void removeProcesFromList(int procesIndex)
     noOfProces--;
     procesID--;
 }
+void handleDataTypes(char type, int procesIndex)
+{
+    int procesCounter = procesTable[procesIndex].programCounter;
+    int procesID = procesTable[procesIndex].procesID;
+    int i = 0;
+    byte instructions;
+    if (type == 'C')
+    {
+        pushChar(EEPROM.read(procesCounter + 1), procesID);
+        i = 1;
+    }
+    else if (type == 'I')
+    {
+
+        byte LSB = EEPROM.read(procesCounter + 2);
+        byte MSB = EEPROM.read(procesCounter + 1);
+        pushInt(word(MSB, LSB), procesID);
+        i = 2;
+    }
+    else if (type == 'F')
+    {
+        // value
+        float value;
+        ((byte *)&value)[3] = EEPROM.read(procesCounter + 1);
+        ((byte *)&value)[2] = EEPROM.read(procesCounter + 2);
+        ((byte *)&value)[1] = EEPROM.read(procesCounter + 3);
+        ((byte *)&value)[0] = EEPROM.read(procesCounter + 4);
+        pushFloat(value, procesID);
+        i = 4;
+    }
+    else if (type == 'S')
+    {
+
+        // determine thellength of the string.
+        byte character;
+
+        while (EEPROM.read(procesCounter + 1 + i) != '\0')
+        {
+            // Serial.println((EEPROM.read(procesCounter + i + offset)));
+
+            character = EEPROM.read(procesCounter + i);
+            // Serial.print(character);
+            i++;
+        }
+
+        char result[i + 2] = {0};
+        // reset cahr array otherwise you get random things added to string
+
+        int offset = 0;
+
+        for (size_t j = 0; j < i; j++)
+        {
+            byte b = EEPROM.read(procesCounter + j + offset);
+            if (b >= 32 && b <= 126)
+            {
+                result[j] = b;
+            }
+            else
+            {
+                offset++;
+                j--;
+            }
+        }
+        // Serial.println(" ");
+        result[i + 1] = '\0'; // Null-terminate the string
+
+        pushString(result, procesID);
+
+        // free(result);
+
+        // Serial.println((EEPROM.read(procesCounter +)));
+    }
+    procesTable[procesIndex].programCounter += i;
+}
+
 //
 // running processes and executing instructions
 //
@@ -163,9 +240,25 @@ void runProcesses()
 {
     // Serial.println((char)procesTable[0].state);
     // Serial.println(noOfProces);
-    for (size_t i = 0; i <= noOfProces; i++)
+    for (size_t i = 0; i < noOfProces; i++)
     {
+        // int procesCounter = procesTable[i].programCounter;
+        // int beginAdres = procesTable[i].beginningAdres;
+        // int length = procesTable[i].programLength;
+        // int procesID = procesTable[i].procesID;
+        // int sp = procesTable[i].sp;
 
+        // byte instruction = EEPROM.read(procesTable[i].programCounter);
+        // Serial.println(instruction);
+
+        // if (beginAdres + length <= procesCounter)
+        // {
+        //     char idStr[2];
+        //     itoa(i, idStr, 2);
+        //     kill(idStr);
+        //     return;
+        // }
+        // procesTable[i].programCounter++;
         execute(i);
     }
 }
@@ -181,6 +274,7 @@ void execute(int i)
         int beginAdres = procesTable[i].beginningAdres;
         int length = procesTable[i].programLength;
         int procesID = procesTable[i].procesID;
+        int sp = procesTable[i].sp;
 
         byte instruction = EEPROM.read(procesCounter);
 
@@ -200,46 +294,87 @@ void execute(int i)
         float floatB;
 
         char popType;
+        // Serial.println(procesCounter);
+        // Serial.println(beginAdres);
+        Serial.println(instruction);
+
         switch (instruction)
         {
         case CHAR:
             Serial.println(F("Executing CHAR"));
+
+            handleDataTypes('C', i);
             break;
 
         case INT:
             Serial.println(F("Executing INT"));
+            handleDataTypes('I', procesID);
             break;
 
         case STRING:
             Serial.println(F("Executing STRING"));
+
+            handleDataTypes('S', procesID);
             break;
 
         case FLOAT:
             Serial.println(F("Executing FLOAT"));
+            handleDataTypes('F', procesID);
             break;
 
         case SET:
-            Serial.println(F("Executing SET"));
-            popByte(procesID); // get type;
-            setVar(popChar(procesID), procesID);
+            // Serial.println(F("Executing SET"));
+
+            setVar(EEPROM.read(++procesTable[i].programCounter), procesID);
+            // showMemory();
             break;
 
         case GET:
-            Serial.println(F("Executing GET"));
-            popByte(procesID); // get type;
-            getVar(popChar(procesID), procesID);
+            // Serial.println(F("Executing GET"));
+            // showMemory();
+            getVar(EEPROM.read(++procesTable[i].programCounter), procesID);
+
             break;
 
         case INCREMENT:
             Serial.println(F("Executing INCREMENT"));
-            popByte(procesID); // get type;
-            pushInt(popInt(procesID) + 1, procesID);
+            popType = popByte(procesID); // get type;
+            if (popType == 'I')
+            {
+                pushInt(popInt(procesID) + 1, procesID);
+            }
+            else if (popType == 'F')
+            {
+                float result = popFloat(procesID);
+                pushFloat(result + 1.0, procesID);
+            }
+            else if (popType == 'C')
+            {
+                byte result = (byte)popChar(procesID);
+                pushChar(result + 1, procesID);
+            }
+
             break;
 
         case DECREMENT:
             Serial.println(F("Executing DECREMENT"));
-            popByte(procesID); // get type;
-            pushInt(popInt(procesID) - 1, procesID);
+            popType = popByte(procesID); // get type;
+            if (popType == 'I')
+            {
+                int resultINT = popInt(procesID);
+                pushInt(resultINT - 1, procesID);
+            }
+            else if (popType == 'F')
+            {
+                float result = popFloat(procesID);
+
+                pushFloat(result - 1.00f, procesID);
+            }
+            else if (popType == 'C')
+            {
+                char result = (char)popChar(procesID);
+                pushChar(result - 0x01, procesID);
+            }
             break;
 
         case PLUS:
@@ -824,19 +959,19 @@ void execute(int i)
             break;
 
         case PRINT:
-            Serial.println(F("Executing PRINT"));
-            popType = popByte(procesID);
+            // Serial.println(F("Executing PRINT"));
+            popType = (char)popByte(procesID);
             if (popType == 'F')
             {
                 Serial.print(popFloat(procesID));
             }
             else if (popType == 'I')
             {
-                Serial.print(popInt(procesID));
+                Serial.print((int)popInt(procesID));
             }
             else if (popType == 'C')
             {
-                Serial.print(popChar(procesID));
+                Serial.print((char)popChar(procesID));
             }
             else if (popType == 'S')
             {
@@ -845,101 +980,131 @@ void execute(int i)
             break;
 
         case PRINTLN:
-            Serial.println(F("Executing PRINTLN"));
-            popType = popByte(procesID);
+            // Serial.println(F("Executing PRINTLN"));
+            popType = (char)popByte(procesID);
             if (popType == 'F')
             {
-
                 Serial.println(popFloat(procesID));
             }
             else if (popType == 'I')
             {
-                Serial.println(popInt(procesID));
+                int printInt = popInt(procesID);
+                Serial.println(printInt);
             }
             else if (popType == 'C')
             {
-                Serial.println(popChar(procesID));
+                Serial.println((char)popChar(procesID));
             }
             else if (popType == 'S')
             {
-                Serial.println(popString(procesID));
+                char *stringresult = popString(procesID);
+                Serial.println(stringresult);
             }
             break;
 
         case OPEN:
             Serial.println(F("Executing OPEN"));
-            procesTable[i].filePointer = beginAdres;
+            showStack(procesID);
+            popByte(procesID); // pop type
+            int size = popInt(procesID);
+
+            showStack(procesID);
+            popByte(procesID); // pop type
+            char *name = popString(procesID);
+
+            int fileIndex = findName(name);
+            if (fileIndex == -1)
+            {
+                int availableSpaceIndex = findAvailableSpaceFAT(size);
+                if (availableSpaceIndex == -1)
+                {
+                    Serial.print("ERROR: file not found and no space left for a file sized: ");
+                    Serial.println(size);
+                    break;
+                }
+                // Prepare file info
+                fileInfo file = {0};
+                strncpy(file.name, name, sizeof(file.name) - 1);
+                file.name[sizeof(file.name) - 1] = '\0';
+                file.position = availableSpaceIndex;
+                file.length = size;
+                // Serial.println(file.name);
+                writeFATEntry(noOfFiles * 16 + 1, file);
+                procesTable[i].filePointer = file.position;
+                break;
+            }
+            fileInfo file = readFATEntry(fileIndex);
+            procesTable[i].filePointer = file.position;
             break;
 
         case CLOSE:
             Serial.println(F("Executing CLOSE"));
             break;
 
-        case WRITE:
+        case 55:
             Serial.println(F("Executing WRITE"));
-            popType = popByte(procesID);
-            int addr = procesTable[i].filePointer;
-
-            if (popType == 'F')
-            {
-                float val = popFloat(procesID);
-                EEPROM.put(addr, val);
-                procesTable[i].filePointer += sizeof(float);
-            }
-            else if (popType == 'I')
-            {
-                int val = popInt(procesID);
-                EEPROM.put(addr, val);
-                procesTable[i].filePointer += sizeof(int);
-            }
-            else if (popType == 'C')
-            {
-                char val = popChar(procesID);
-                EEPROM.write(addr, val);
-                procesTable[i].filePointer += 1;
-            }
-            else if (popType == 'S')
-            {
-                char *str = popString(procesID);
-                int len = strlen(str);
-                for (int j = 0; j < len; j++)
-                {
-                    EEPROM.write(addr + j, str[j]);
-                }
-                procesTable[i].filePointer += len;
-            }
+            // popType = popByte(procesID);
+            // int addr = procesTable[i].filePointer;
+            // if (popType == 'F')
+            // {
+            //     float val = popFloat(procesID);
+            //     EEPROM.put(addr, val);
+            //     procesTable[i].filePointer += sizeof(float);
+            // }
+            // else if (popType == 'I')
+            // {
+            //     int val = popInt(procesID);
+            //     EEPROM.put(addr, val);
+            //     procesTable[i].filePointer += sizeof(int);
+            // }
+            // else if (popType == 'C')
+            // {
+            //     char val = popChar(procesID);
+            //     EEPROM.write(addr, val);
+            //     procesTable[i].filePointer += 1;
+            // }
+            // else if (popType == 'S')
+            // {
+            //     char *str = popString(procesID);
+            //     int len = strlen(str);
+            //     for (int j = 0; j < len; j++)
+            //     {
+            //         EEPROM.write(addr + j, str[j]);
+            //     }
+            //     procesTable[i].filePointer += len;
+            // }
             break;
 
         case READINT:
             Serial.println(F("Executing READINT"));
-            int result;
-            EEPROM.get(procesTable[i].filePointer, result);
+            int resultInt;
+            EEPROM.get(procesTable[i].filePointer, resultInt);
             procesTable[i].filePointer += sizeof(int);
             break;
 
         case READCHAR:
             Serial.println(F("Executing READCHAR"));
-            char result;
-            EEPROM.get(procesTable[i].filePointer, result);
+            char resultChar;
+            EEPROM.get(procesTable[i].filePointer, resultChar);
             procesTable[i].filePointer += sizeof(char);
             break;
 
         case READFLOAT:
             Serial.println(F("Executing READFLOAT"));
-            float result;
-            EEPROM.get(procesTable[i].filePointer, result);
+            float resultFloat;
+            EEPROM.get(procesTable[i].filePointer, resultFloat);
             procesTable[i].filePointer += sizeof(float);
             break;
 
         case READSTRING:
             Serial.println(F("Executing READSTRING"));
-            String result;
-            int addr = procesTable[i].filePointer;
+            String resultString;
+            int addrString = procesTable[i].filePointer;
             char singleChar;
             int j = 0;
             while (singleChar != '\0')
             {
-                result[j] = EEPROM.read(addr + j);
+                resultString[j] = EEPROM.read(addrString + j);
                 j++;
             }
             procesTable[i].filePointer += j;
@@ -975,6 +1140,9 @@ void execute(int i)
 
         case STOP:
             Serial.println(F("Executing STOP"));
+            char idStr[2];
+            itoa(i, idStr, 2);
+            kill(idStr);
             break;
 
         case FORK:

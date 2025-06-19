@@ -9,7 +9,7 @@ void retrieve(const char *arg);
 void files(const char *arg);
 void freespace(const char *arg);
 void showEEPROM(const char *arg);
-
+void clearEEPROM(const char *arg);
 void unknownCommand(const char *arg);
 void commandHandler(const char **userInput);
 

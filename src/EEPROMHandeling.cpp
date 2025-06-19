@@ -48,12 +48,24 @@ void eraseFromEEPROM(int startingPos, int length)
         EEPROM.write(startingPos + i, 0);
     }
 }
+
+// overloaded
 byte *retrieveFromEEPROM(fileInfo file)
 {
     byte *data = new byte[file.length];
     for (size_t i = 0; i < file.length; i++)
     {
         data[i] = EEPROM.read(file.position + i);
+    }
+    return data;
+}
+// overloaded
+byte *retrieveFromEEPROM(int position, int length)
+{
+    byte *data = new byte[length];
+    for (size_t i = 0; i < length; i++)
+    {
+        data[i] = EEPROM.read(position + i);
     }
     return data;
 }
@@ -65,7 +77,6 @@ int findName(char *name)
         //  index + fileInfosize + translation for numberOfFiles variable
         int positionIndex = i * 16 + 1;
         fileInfo file = readFATEntry(positionIndex);
-
         if (strcmp(file.name, name) == 0)
         {
             return i * 16 + 1;
@@ -74,7 +85,7 @@ int findName(char *name)
 
     return -1;
 }
-int findAvailableSpace(byte size)
+int findAvailableSpaceFAT(byte size)
 {
     const int FAT_start = 1;
     const int file_info_size = sizeof(fileInfo);
