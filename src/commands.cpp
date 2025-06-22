@@ -16,6 +16,7 @@ commandType commands[] = {
     {"kill", kill},
     {"list", list},
     {"clearEEPROM", clearEEPROM},
+    {"showByte", showProcesByteCode},
 };
 const int nCommands = sizeof(commands) / sizeof(commandType);
 void commandHandler(const char **userInput)
@@ -86,35 +87,35 @@ void store(const char *arg)
     // Now read the raw bytes from Serial
     byte dataBytes[128];
     int dataCount = 0;
-    unsigned long start = millis();
-    while (dataCount < size && (millis() - start) < 2000)
-    { // 2s timeout
-        if (Serial.available())
-        {
-            dataBytes[dataCount++] = Serial.read();
-        }
-    }
+
     Serial.println(size);
     Serial.println(dataCount);
 
-    if (dataCount == 0)
+    char *data = strtok(NULL, "");
+    if (data == NULL)
     {
-        char *data = strtok(NULL, "");
-        if (data == NULL)
-        {
 
+        unsigned long start = millis();
+        while (dataCount < size && (millis() - start) < 2000)
+        { // 2s timeout
+            if (Serial.available())
+            {
+                dataBytes[dataCount++] = Serial.read();
+            }
+        }
+        if (dataCount != size)
+        {
+            Serial.println(F("Did not receive all data bytes."));
             return;
         }
+    }
+    else
+    {
         size_t dataLen = strlen(data);
         if (dataLen > (size_t)size)
             dataLen = size;
         memcpy(dataBytes, data, dataLen);
         dataCount = dataLen;
-    }
-    else if (dataCount != size)
-    {
-        Serial.println(F("Did not receive all data bytes."));
-        return;
     }
 
     putIntoEEPROM(dataBytes, size, availableSpaceIndex);
@@ -128,6 +129,7 @@ struct TempFile
 
 void erase(const char *arg)
 {
+
     if (arg == NULL)
     {
         Serial.println(F("Not enough arguments has been given. Please try again."));
@@ -140,7 +142,6 @@ void erase(const char *arg)
         Serial.println(F("No file exists with that name"));
         return;
     }
-
     fileInfo deletedFile = readFATEntry(nameIndex);
 
     // Gather all following files' data BEFORE erasing anything else
@@ -164,7 +165,7 @@ void erase(const char *arg)
     // erase the FAT and EEPROM content of the deleted file
     eraseFATEntry(nameIndex);
     eraseFromEEPROM(deletedFile.position, deletedFile.length);
-
+    int totalFilesBeforeErasing = noOfFiles;
     // Now re-insert the files at their new positions
     for (int j = 0; j < fileIdx; j++)
     {
@@ -177,13 +178,12 @@ void erase(const char *arg)
         shiftedFiles[j].info.position = deletedFile.position + j * shiftedFiles[j].info.length;
         writeFATEntry(nameIndex + (j * 16), shiftedFiles[j].info);
         eraseFATEntry(nameIndex + 16 + (j * 16)); // clean up old FAT
-
         delete[] shiftedFiles[j].data;
     }
 
     delete[] shiftedFiles;
 
-    noOfFiles--;
+    noOfFiles = totalFilesBeforeErasing - 1;
     Serial.println(F("File erased and remaining files moved."));
 }
 
@@ -221,6 +221,8 @@ void retrieve(const char *arg)
 }
 void files(const char *arg)
 {
+    Serial.println("Number of files: ");
+    Serial.println(noOfFiles);
     for (int i = 0; i < noOfFiles; i++)
     {
         //  index + fileInfosize + translation for numberOfFiles variable
@@ -292,4 +294,26 @@ void clearEEPROM(const char *arg)
     }
     noOfFiles = 0;
     Serial.println("EEPROM cleared");
+}
+void showProcesByteCode(const char *arg)
+{
+    if (arg == NULL)
+    {
+        Serial.println(F("Not enough arguments has been given. Please try again."));
+        return;
+    }
+
+    int nameIndex = findName(arg);
+    if (nameIndex == -1)
+    {
+        Serial.println(F("No instruction file exists with that name"));
+        return;
+    }
+
+    fileInfo file = readFATEntry(nameIndex);
+    byte *fileData = retrieveFromEEPROM(file);
+    for (size_t i = 0; i < file.length; i++)
+    {
+        Serial.println(fileData[i]);
+    }
 }

@@ -7,9 +7,16 @@ memoryEntry memoryTable[MAX_VARS];
 byte noOfVars = 0;
 void setVar(byte name, int ID)
 {
+    // Serial.print(F("variable name: "));
+    // Serial.println(name);
     if (noOfVars == MAX_VARS)
     {
         Serial.println(F("Maximum amount of variable has been reached"));
+        return;
+    }
+    if (name == NULL)
+    {
+        Serial.println(F("Name is NULL"));
         return;
     }
     int variableIndex = findVariable(name, ID);
@@ -73,11 +80,13 @@ void setVar(byte name, int ID)
     for (int i = length; i > 0; i--)
     {
         byte bit = popByte(ID);
+        // Serial.print(bit);
         memory[avaliableSpaceIndex - 1 + i] = bit;
     }
 }
 void getVar(byte name, int ID)
 {
+    // showMemory();
     int variableIndex = findVariable(name, ID);
     if (variableIndex == -1)
     {
@@ -88,13 +97,14 @@ void getVar(byte name, int ID)
     byte length = memoryTable[variableIndex].length;
     int adres = memoryTable[variableIndex].adres;
 
-    for (int i = length; i > 0; i--)
+    for (int i = 0; i < length; i++)
     {
-        pushByte(memory[adres - 1 + i], ID);
+        pushByte(memory[adres + i], ID);
     }
 
     if (type == 'S')
     {
+        pushByte('\0', ID);
         pushByte(length, ID);
     }
     pushByte(type, ID);

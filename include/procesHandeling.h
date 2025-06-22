@@ -13,6 +13,7 @@ struct procesEntry
     int programLength;
     int beginningAdres;
     int filePointer;
+    int loopAdres;
     byte stack[32];
     int sp;
 };
@@ -25,6 +26,7 @@ void list(const char *arg);
 void removeProcesFromList(int procesIndex);
 void changeState(int ID, byte desiredState);
 int findID(int ID);
+int findProces(char *name);
 void handleDataTypes(char type, int procesIndex);
 void runProcesses();
 void execute(int i);
