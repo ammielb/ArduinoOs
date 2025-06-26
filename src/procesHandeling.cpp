@@ -97,18 +97,18 @@ void kill(const char *arg)
         Serial.println(F("Given argument is not a valid integer."));
         return;
     }
-    Serial.println("killing shit");
     int procesIndex = findID(atoi(arg[0]));
     if (procesIndex == -1)
     {
         Serial.println(F("Given process ID does not exist"));
         return;
     }
-    Serial.println(procesIndex);
+    // Serial.println(procesIndex);
     changeState(procesIndex, '0');
-    // showStack()
-    // deleteProcesVars(procesIndex);
-    // removeProcesFromList(procesIndex);
+    deleteProcesVars(atoi(arg[0]));
+    removeProcesFromList(procesIndex);
+
+    Serial.println(F("Process terminated"));
 }
 void list(const char *arg)
 {
@@ -124,7 +124,7 @@ void list(const char *arg)
         Serial.print(F("Name: "));
         Serial.println(procesTable[i].name);
         Serial.print(F("State: "));
-        Serial.println(procesTable[i].state);
+        Serial.println((char)procesTable[i].state);
     }
 }
 // helpers functions
@@ -142,7 +142,7 @@ void changeState(int ID, byte desiredState)
 
 int findID(int ID)
 {
-    for (size_t i = 0; i < noOfProces; i++)
+    for (size_t i = 0; i <= noOfProces; i++)
     {
         if (procesTable[i].procesID == ID)
         {
@@ -243,6 +243,7 @@ void handleDataTypes(char type, int procesIndex)
         // 1  for the Null-termination
         i += 1;
         pushString(result, procesID);
+
         // free(result);
 
         // Serial.println((EEPROM.read(procesCounter +)));
@@ -299,6 +300,7 @@ void execute(int i)
         // Serial.println(beginAdres);
         // Serial.println(instruction);
 
+        // execute 1 byte code per count
         switch (instruction)
         {
         case CHAR:
@@ -308,7 +310,7 @@ void execute(int i)
             break;
 
         case INT:
-            Serial.println(F("Executing INT"));
+            // Serial.println(F("Executing INT"));
             handleDataTypes('I', i);
             break;
 
@@ -324,21 +326,21 @@ void execute(int i)
             break;
 
         case SET:
-            Serial.println(F("Executing SET"));
-            showStack(procesID);
+            // Serial.println(F("Executing SET"));
+            // showStack(procesID);
             setVar(EEPROM.read(++procesTable[i].programCounter), procesID);
             // showMemory();
             break;
 
         case GET:
-            Serial.println(F("Executing GET"));
+            // Serial.println(F("Executing GET"));
             // showMemory();
             getVar(EEPROM.read(++procesTable[i].programCounter), procesID);
-            showStack(procesID);
+            // showStack(procesID);
             break;
 
         case INCREMENT:
-            Serial.println(F("Executing INCREMENT"));
+            // Serial.println(F("Executing INCREMENT"));
             popType = popByte(procesID); // get type;
             if (popType == 'I')
             {
@@ -391,6 +393,7 @@ void execute(int i)
 
             if (popType == 'I')
             {
+
                 int x = popInt(procesID);
                 popByte(procesID); // pop type for y
                 int y = popInt(procesID);
@@ -411,7 +414,7 @@ void execute(int i)
                 char charY = (char)popChar(procesID);
                 pushChar(charX + charY, procesID);
             }
-            showStack(procesID);
+            // showStack(procesID);
             break;
 
         case MINUS:
@@ -937,7 +940,7 @@ void execute(int i)
             break;
 
         case MILLIS:
-            Serial.println(F("Executing MILLIS"));
+            // Serial.println(F("Executing MILLIS"));
             pushInt((int)millis(), procesID);
             break;
 
@@ -1025,9 +1028,9 @@ void execute(int i)
 
         case OPEN:
             Serial.println(F("Executing OPEN"));
-
             popByte(procesID); // pop type
             int size = popInt(procesID);
+            showStack(procesID);
             popByte(procesID); // pop type
             char *name = popString(procesID);
 
@@ -1114,7 +1117,7 @@ void execute(int i)
         // write is in an if case because for some reason it doesnt execute in the  switch case
         if (instruction == WRITE)
         {
-            // Serial.println(F("Executing WRITE"));
+            Serial.println(F("Executing WRITE"));
             popType = popByte(procesID);
             int addr = procesTable[i].filePointer;
             if (popType == 'F')
@@ -1133,11 +1136,8 @@ void execute(int i)
             else if (popType == 'I')
             {
                 int val = popInt(procesID);
-                Serial.println(val);
                 byte MSB = highByte(val);
                 byte LSB = lowByte(val);
-                Serial.println(MSB);
-                Serial.println(LSB);
                 EEPROM.write(addr, MSB);
                 EEPROM.write(addr + 1, LSB);
 
@@ -1151,10 +1151,10 @@ void execute(int i)
             }
             else if (popType == 'S')
             {
-
+                showStack(procesID);
                 char *str = popString(procesID);
                 int len = strlen(str);
-
+                Serial.println(str);
                 for (int j = 0; j < len; j++)
                 {
                     EEPROM.write(addr + j, str[j]);
@@ -1222,8 +1222,9 @@ void execute(int i)
             {
                 resultString[k] = EEPROM.read(addrString + k);
             }
+
             resultString[j - 1] = '\0'; // Ensure null-termination
-                                        // Serial.println()
+            // Serial.println(resultString);
             procesTable[i].filePointer += j;
             pushString(resultString, procesID);
             free(resultString);
@@ -1236,20 +1237,21 @@ void execute(int i)
         }
         else if (instruction == DELAYUNTIL)
         {
-            Serial.println(F("Executing DELAYUNTIL"));
+            // Serial.println(F("Executing DELAYUNTIL"));
             popByte(procesID); // get data type;
             x = popInt(procesID);
-            showStack(procesID);
+            // showStack(procesID);
             if (x > millis())
             {
+
+                pushInt(x, procesID);
                 procesTable[i].programCounter--;
-                // pushInt(x, procesID);
                 return;
             }
-            showStack(procesID);
+
             // popByte(procesID); // get data type;
             // x = popInt(procesID);
-            showStack(procesID);
+            // showStack(procesID);
             // floatX = popVal(procesID);
             // if ((int)floatX > (int)millis())
             // {
@@ -1268,8 +1270,8 @@ void execute(int i)
             // Serial.println(F("Executing ENDLOOP"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          ));
             procesTable[i].programCounter = procesTable[i].loopAdres;
         }
-
-        if (beginAdres + length <= procesCounter)
+        Serial.println(procesTable[i].state);
+        if (beginAdres + length <= procesCounter && procesTable[i].state != '0')
         {
             char idStr[2];
             itoa(procesID, idStr, 2);
@@ -1277,6 +1279,5 @@ void execute(int i)
             return;
         }
         procesTable[i].programCounter++;
-        // Serial.println(i);
     }
 }

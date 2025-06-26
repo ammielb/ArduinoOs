@@ -104,7 +104,6 @@ void getVar(byte name, int ID)
 
     if (type == 'S')
     {
-        pushByte('\0', ID);
         pushByte(length, ID);
     }
     pushByte(type, ID);
