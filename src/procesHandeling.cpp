@@ -345,7 +345,7 @@ void execute(int i)
             if (popType == 'I')
             {
                 int resultInt = popInt(procesID);
-                Serial.println(resultInt);
+                // Serial.println(resultInt);
                 pushInt(resultInt + 1, procesID);
             }
             else if (popType == 'F')
@@ -389,6 +389,7 @@ void execute(int i)
 
         case PLUS:
             Serial.println(F("Executing PLUS"));
+            // showStack(procesID);
             popType = popByte(procesID); // get type;
 
             if (popType == 'I')
@@ -1027,10 +1028,10 @@ void execute(int i)
             break;
 
         case OPEN:
-            Serial.println(F("Executing OPEN"));
+            // Serial.println(F("Executing OPEN"));
             popByte(procesID); // pop type
             int size = popInt(procesID);
-            showStack(procesID);
+            // showStack(procesID);
             popByte(procesID); // pop type
             char *name = popString(procesID);
 
@@ -1087,13 +1088,6 @@ void execute(int i)
 
         case ENDWHILE:
             Serial.println(F("Executing ENDWHILE"));
-            break;
-
-        case STOP:
-            Serial.println(F("Executing STOP"));
-            // char idStr[2];
-            // itoa(procesID, idStr, 2);
-            // kill(idStr);
             break;
 
         case FORK:
@@ -1245,7 +1239,7 @@ void execute(int i)
             {
 
                 pushInt(x, procesID);
-                procesTable[i].programCounter--;
+                // procesTable[i].programCounter--;
                 return;
             }
 
@@ -1270,8 +1264,8 @@ void execute(int i)
             // Serial.println(F("Executing ENDLOOP"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          ));
             procesTable[i].programCounter = procesTable[i].loopAdres;
         }
-        Serial.println(procesTable[i].state);
-        if (beginAdres + length <= procesCounter && procesTable[i].state != '0')
+
+        else if (instruction == STOP)
         {
             char idStr[2];
             itoa(procesID, idStr, 2);
